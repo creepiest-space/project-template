@@ -1,0 +1,10 @@
+{
+  "id": "package-quality",
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "publint": "^0.3.23"
+  },
+  "scripts": {
+    "capability:package": "bun run build && publint && attw --pack ."
+  }
+}

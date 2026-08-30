@@ -1,0 +1,23 @@
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun ci
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: End-to-end tests
+        run: bun run test:e2e

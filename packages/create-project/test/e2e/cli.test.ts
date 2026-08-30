@@ -38,4 +38,45 @@ describe('create-project CLI', () => {
       await rm(cwd, { force: true, recursive: true });
     }
   });
+
+  test('creates a web profile non-interactively', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'create-project-e2e-'));
+    try {
+      const child = Bun.spawn(
+        [
+          'bun',
+          cli,
+          'web-app',
+          '--profile=web',
+          '--framework=none',
+          '--testing=unit,integration,e2e',
+          '--quality=full',
+          '--no-install',
+          '--no-git',
+          `--cwd=${cwd}`,
+        ],
+        { stderr: 'pipe', stdout: 'pipe' },
+      );
+      const exitCode = await child.exited;
+      const stderr = await new Response(child.stderr).text();
+      const manifest: unknown = JSON.parse(
+        await readFile(join(cwd, 'web-app', 'package.json'), 'utf8'),
+      );
+
+      expect(exitCode).toBe(0);
+      expect(stderr).toBe('');
+      expect(manifest).toMatchObject({
+        devDependencies: {
+          '@playwright/test': '^1.62.1',
+          stylelint: '^17.14.1',
+          vitest: '^4.1.11',
+        },
+      });
+      expect(await readFile(join(cwd, 'web-app', 'playwright.config.ts'), 'utf8')).toContain(
+        'chromium',
+      );
+    } finally {
+      await rm(cwd, { force: true, recursive: true });
+    }
+  });
 });

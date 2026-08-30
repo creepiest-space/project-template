@@ -9,6 +9,7 @@ import {
   formatReproductionCommand,
   getNextSteps,
   parseArgs,
+  resolveFeatures,
   scaffoldProject,
   slugifyPackageName,
   type ScaffoldOptions,
@@ -56,12 +57,17 @@ function options(cwd: string, overrides: Partial<ScaffoldOptions> = {}): Scaffol
 describe('parseArgs', () => {
   test('uses safe Bun-first defaults', () => {
     expect(parseArgs(['my-project'], '/workspace')).toEqual({
+      ci: 'github',
       cwd: '/workspace',
       dir: 'my-project',
+      features: [],
       force: false,
+      framework: 'none',
       git: true,
       help: false,
       install: true,
+      profile: 'base',
+      quality: 'profile',
       template: 'base',
       version: false,
     });
@@ -94,6 +100,36 @@ describe('parseArgs', () => {
       force: true,
       template: 'base',
     });
+  });
+
+  test('parses composable project dimensions', () => {
+    expect(
+      parseArgs([
+        'app',
+        '--profile=web',
+        '--framework=none',
+        '--testing=unit,integration,e2e',
+        '--quality=full',
+        '--features=security',
+        '--ci=none',
+      ]),
+    ).toMatchObject({
+      ci: 'none',
+      features: ['security'],
+      framework: 'none',
+      profile: 'web',
+      quality: 'full',
+      testing: ['unit', 'integration', 'e2e'],
+    });
+  });
+});
+
+describe('profiles', () => {
+  test('resolve independently from frameworks', () => {
+    expect(resolveFeatures({ profile: 'cli' })).toEqual(['case-police', 'cspell', 'vitest']);
+    expect(resolveFeatures({ profile: 'library' })).toContain('package-quality');
+    expect(resolveFeatures({ profile: 'web', testing: ['unit'] })).not.toContain('playwright');
+    expect(resolveFeatures({ profile: 'base', features: ['security'] })).toEqual(['security']);
   });
 });
 
@@ -200,6 +236,32 @@ describe('scaffoldProject', () => {
       'conflicts with package.json scripts.build',
     );
     expect(await readFile(join(projectDir, 'package.json'), 'utf8')).toContain('turbo build');
+  });
+
+  test('generates a library profile with package checks', async () => {
+    const cwd = await temporaryDirectory();
+    const result = await scaffoldProject(options(cwd, { profile: 'library' }));
+    const manifest: unknown = JSON.parse(
+      await readFile(join(result.projectDir, 'package.json'), 'utf8'),
+    );
+
+    expect(manifest).toMatchObject({
+      devDependencies: {
+        '@arethetypeswrong/cli': '^0.18.5',
+        publint: '^0.3.23',
+        vitest: '^4.1.11',
+      },
+      scripts: {
+        'capability:package': 'bun run build && publint && attw --pack .',
+      },
+    });
+  });
+
+  test('omits GitHub Actions when CI is disabled', async () => {
+    const cwd = await temporaryDirectory();
+    const result = await scaffoldProject(options(cwd, { ci: 'none', profile: 'web' }));
+    await expectRejection(readFile(join(result.projectDir, '.github', 'workflows', 'ci.yml')));
+    await expectRejection(readFile(join(result.projectDir, '.github', 'workflows', 'e2e.yml')));
   });
 
   test('preserves an existing directory unless force is explicit', async () => {

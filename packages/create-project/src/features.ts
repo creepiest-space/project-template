@@ -7,7 +7,9 @@ export const FEATURE_IDS = [
   'case-police',
   'cspell',
   'dependency-cruiser',
+  'package-quality',
   'playwright',
+  'security',
   'stylelint',
   'vitest',
 ] as const;

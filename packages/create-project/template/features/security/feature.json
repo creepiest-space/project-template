@@ -1,0 +1,6 @@
+{
+  "id": "security",
+  "scripts": {
+    "capability:security": "bun audit"
+  }
+}
