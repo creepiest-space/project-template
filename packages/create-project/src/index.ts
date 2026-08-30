@@ -6,7 +6,7 @@ import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 
 import packageJson from '../package.json';
-import { applyFeatures, isFeatureId, type FeatureId } from './features';
+import { applyFeatures, isFeatureId, type FeatureId } from './features.js';
 import {
   isCiProvider,
   isFrameworkId,
@@ -19,9 +19,9 @@ import {
   type ProfileId,
   type QualityPreset,
   type TestingLayer,
-} from './profiles';
+} from './profiles.js';
 
-export { applyFeatures, FEATURE_IDS, isFeatureId, type FeatureId } from './features';
+export { applyFeatures, FEATURE_IDS, isFeatureId, type FeatureId } from './features.js';
 export {
   CI_PROVIDERS,
   FRAMEWORK_IDS,
@@ -34,7 +34,7 @@ export {
   type ProfileId,
   type QualityPreset,
   type TestingLayer,
-} from './profiles';
+} from './profiles.js';
 
 const TEMPLATE = 'base';
 const TEMPLATE_DIR = fileURLToPath(new URL('../template/base', import.meta.url));

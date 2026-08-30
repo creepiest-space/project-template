@@ -21,6 +21,14 @@ const requiredFiles = [
   'template/base/oxlint.config.mts.template',
   'template/base/package.json',
   'template/base/packages/.gitkeep',
+  'template/features/case-police/feature.json',
+  'template/features/cspell/feature.json',
+  'template/features/dependency-cruiser/feature.json',
+  'template/features/package-quality/feature.json',
+  'template/features/playwright/feature.json',
+  'template/features/security/feature.json',
+  'template/features/stylelint/feature.json',
+  'template/features/vitest/feature.json',
 ] as const;
 
 await Promise.all(

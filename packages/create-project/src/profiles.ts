@@ -1,4 +1,4 @@
-import { FEATURE_IDS, type FeatureId } from './features';
+import { FEATURE_IDS, type FeatureId } from './features.js';
 
 export const PROFILE_IDS = ['base', 'cli', 'api', 'web', 'library', 'fullstack'] as const;
 export const FRAMEWORK_IDS = ['none'] as const;

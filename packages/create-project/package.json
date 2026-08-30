@@ -31,6 +31,7 @@
   "scripts": {
     "build": "bun run clean && bun build ./src/cli.ts ./src/index.ts --target=bun --outdir=dist && bunx tsc --project tsconfig.build.json",
     "clean": "bun ./scripts/clean.ts",
+    "check:package": "bun run build && publint && bun run verify:types && bun run verify:tarball",
     "pack:npm": "bun pm pack --destination ../../artifacts",
     "pack:npm:dry-run": "bun pm pack --dry-run",
     "prepack": "bun run build && bun run verify:package",
@@ -41,7 +42,9 @@
     "test:unit": "bun test test/unit",
     "test:integration": "bun test test/e2e",
     "typecheck": "bunx tsc --noEmit",
-    "verify:package": "bun ./scripts/verify-package.ts"
+    "verify:package": "bun ./scripts/verify-package.ts",
+    "verify:tarball": "bun ./scripts/verify-tarball.ts",
+    "verify:types": "bun ./scripts/verify-types.ts"
   },
   "engines": {
     "bun": ">=1.3.0"

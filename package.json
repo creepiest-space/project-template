@@ -30,6 +30,7 @@
     "quality:hygiene": "bun run check:case && bun run check:spelling",
     "check:package": "bun run --if-present capability:package",
     "check:security": "bun run --if-present capability:security",
+    "capability:package": "bun run --cwd packages/create-project check:package",
     "quality:codebase": "bun run check:deadcode && bun run check:architecture && bun run check:package && bun run check:security",
     "quality:test": "bun run test:unit && bun run test:integration",
     "quality:fast": "bun run quality:static && bun run check:deadcode && bun run test:unit",
@@ -42,6 +43,7 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
     "@commitlint/types": "^21.2.0",
@@ -56,6 +58,7 @@
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "publint": "^0.3.23",
     "turbo": "^2.10.0",
     "typescript": "^7.0.0"
   },
