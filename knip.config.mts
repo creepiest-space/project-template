@@ -5,5 +5,11 @@ export default {
     'apps/*': {},
     'packages/*': {},
   },
-  ignore: ['cz.config.mts', 'packages/create-project/template/**', '**/dist/**', '**/coverage/**'],
+  ignore: [
+    'cz.config.mts',
+    'packages/create-project/template/**',
+    'tmp/**',
+    '**/dist/**',
+    '**/coverage/**',
+  ],
 } satisfies KnipConfig;

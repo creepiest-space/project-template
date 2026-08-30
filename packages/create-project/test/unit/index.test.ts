@@ -137,10 +137,10 @@ describe('scaffoldProject', () => {
       private: true,
       scripts: {
         build: 'turbo build',
-        check: 'bun run format:check && bun run lint && bun run typecheck',
-        'check:full':
-          'bun run check && bun run lint:types && bun run test && bun run deadcode && bun run build',
-        test: 'turbo test',
+        check: 'bun run quality:fast',
+        'check:full': 'bun run quality',
+        deadcode: 'bun run check:deadcode',
+        test: 'bun run quality:test',
       },
       workspaces: ['apps/*', 'packages/*'],
     });

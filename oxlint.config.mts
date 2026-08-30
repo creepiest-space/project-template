@@ -25,5 +25,5 @@ export default defineConfig({
       },
     },
   ],
-  ignorePatterns: ['dist/**', 'coverage/**', '.turbo/**'],
+  ignorePatterns: ['dist/**', 'coverage/**', '.turbo/**', 'tmp/**'],
 });

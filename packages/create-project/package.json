@@ -37,7 +37,9 @@
     "prepublishOnly": "bun run typecheck && bun run test",
     "publish:npm": "bun publish --access public",
     "publish:npm:dry-run": "bun publish --dry-run --access public",
-    "test": "bun test",
+    "test": "bun run test:unit && bun run test:integration",
+    "test:unit": "bun test test/unit",
+    "test:integration": "bun test test/e2e",
     "typecheck": "bunx tsc --noEmit",
     "verify:package": "bun ./scripts/verify-package.ts"
   },
