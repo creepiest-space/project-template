@@ -1,0 +1,12 @@
+{
+  "id": "vitest",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.11",
+    "vitest": "^4.1.11"
+  },
+  "scripts": {
+    "capability:test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
+    "capability:test:unit": "vitest run --config vitest.config.ts --passWithNoTests",
+    "test:unit:coverage": "vitest run --config vitest.config.ts --coverage --passWithNoTests"
+  }
+}

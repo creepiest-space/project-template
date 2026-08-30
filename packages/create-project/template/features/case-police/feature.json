@@ -1,0 +1,9 @@
+{
+  "id": "case-police",
+  "devDependencies": {
+    "case-police": "^2.2.1"
+  },
+  "scripts": {
+    "capability:case": "case-police"
+  }
+}

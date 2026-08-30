@@ -1,0 +1,9 @@
+{
+  "id": "dependency-cruiser",
+  "devDependencies": {
+    "dependency-cruiser": "^18.2.0"
+  },
+  "scripts": {
+    "capability:architecture": "depcruise apps packages --config dependency-cruiser.config.mjs"
+  }
+}

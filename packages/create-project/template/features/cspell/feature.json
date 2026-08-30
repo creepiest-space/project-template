@@ -1,0 +1,9 @@
+{
+  "id": "cspell",
+  "devDependencies": {
+    "cspell": "^10.1.1"
+  },
+  "scripts": {
+    "capability:spelling": "cspell ."
+  }
+}
