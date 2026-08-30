@@ -144,9 +144,9 @@ describe('scaffoldProject', () => {
       },
       workspaces: ['apps/*', 'packages/*'],
     });
-    expect(await readFile(join(result.projectDir, 'lefthook.yml'), 'utf8')).toContain(
-      'bun run check',
-    );
+    const lefthook = await readFile(join(result.projectDir, 'lefthook.yml'), 'utf8');
+    expect(lefthook).toContain('{staged_files}');
+    expect(lefthook).toContain('bun run quality:fast');
     expect(await readFile(join(result.projectDir, 'turbo.json'), 'utf8')).toContain('"test"');
   });
 

@@ -2,9 +2,15 @@ pre-commit:
   parallel: true
   commands:
     format:
-      run: bun run format:check
-    lint:
-      run: bun run lint
+      glob: '*.{js,jsx,ts,tsx,json,jsonc,html,css,scss,sass,less,pcss,postcss,md,yml,yaml}'
+      run: bunx oxfmt --write {staged_files}
+      stage_fixed: true
+    oxlint:
+      glob: '*.{js,jsx,ts,tsx}'
+      run: bunx oxlint --deny-warnings {staged_files}
+    stylelint:
+      glob: '*.{css,scss,sass,less,pcss,postcss}'
+      run: bun run --if-present lint:styles:staged -- {staged_files}
 
 commit-msg:
   commands:
@@ -13,5 +19,5 @@ commit-msg:
 
 pre-push:
   commands:
-    check:
-      run: bun run check
+    quality-fast:
+      run: bun run quality:fast

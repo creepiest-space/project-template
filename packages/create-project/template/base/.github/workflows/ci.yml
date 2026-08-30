@@ -13,33 +13,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
+  static:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
-
       - name: Install
         run: bun ci
-
-      - name: Formatting
-        run: bun run format:check
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Type-aware lint
-        run: bun run lint:types
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Dead code
-        run: bun run deadcode
+      - name: Static analysis
+        run: bun run quality:static
+      - name: Hygiene
+        run: bun run quality:hygiene
+      - name: Codebase architecture
+        run: bun run quality:codebase
 
   test:
-    needs: quality
+    needs: static
     strategy:
       fail-fast: false
       matrix:
@@ -49,12 +39,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
-
       - name: Install
         run: bun ci
+      - name: Unit and integration tests
+        run: bun run quality:test
 
-      - name: Test
-        run: bun run test
-
+  build:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun ci
       - name: Build
         run: bun run build

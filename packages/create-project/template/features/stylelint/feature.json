@@ -10,6 +10,7 @@
   },
   "scripts": {
     "capability:styles": "stylelint \"**/*.{css,scss,sass,less,pcss,postcss}\" --allow-empty-input",
-    "lint:styles:fix": "stylelint \"**/*.{css,scss,sass,less,pcss,postcss}\" --allow-empty-input --fix"
+    "lint:styles:fix": "stylelint \"**/*.{css,scss,sass,less,pcss,postcss}\" --allow-empty-input --fix",
+    "lint:styles:staged": "stylelint"
   }
 }
