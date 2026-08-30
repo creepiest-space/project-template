@@ -34,6 +34,25 @@ describe('create-project CLI', () => {
       expect(JSON.parse(await readFile(join(cwd, 'demo', 'package.json'), 'utf8')).name).toBe(
         'demo',
       );
+      expect(await Bun.file(join(cwd, 'demo', '.git', 'HEAD')).exists()).toBe(false);
+    } finally {
+      await rm(cwd, { force: true, recursive: true });
+    }
+  });
+
+  test('initializes Git when requested', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'create-project-e2e-'));
+    try {
+      const child = Bun.spawn(
+        ['bun', cli, 'git-demo', '--template=base', '--no-install', '--git', `--cwd=${cwd}`],
+        { stderr: 'pipe', stdout: 'pipe' },
+      );
+      const exitCode = await child.exited;
+
+      expect(exitCode).toBe(0);
+      expect(await readFile(join(cwd, 'git-demo', '.git', 'HEAD'), 'utf8')).toContain(
+        'refs/heads/',
+      );
     } finally {
       await rm(cwd, { force: true, recursive: true });
     }

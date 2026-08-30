@@ -372,7 +372,9 @@ export async function scaffoldProject(options: ScaffoldOptions): Promise<Scaffol
     });
     const projectName = slugifyPackageName(projectDir);
     await customizeTemplate(stagedProject, projectName);
-    await applyFeatures(stagedProject, resolveFeatures(options), options.featuresDir);
+    await applyFeatures(stagedProject, resolveFeatures(options), options.featuresDir, {
+      projectName,
+    });
     if (options.ci === 'none') {
       await rm(join(stagedProject, '.github', 'workflows'), { force: true, recursive: true });
     }

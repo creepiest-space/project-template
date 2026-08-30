@@ -1,5 +1,4 @@
-import { constants } from 'node:fs';
-import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +32,7 @@ export async function applyFeatures(
   projectDir: string,
   requestedFeatures: readonly FeatureId[],
   featuresDir = DEFAULT_FEATURES_DIR,
+  variables: Readonly<Record<string, string>> = {},
 ): Promise<void> {
   const featureIds = [...new Set(requestedFeatures)].toSorted();
   if (featureIds.length === 0) return;
@@ -47,7 +47,7 @@ export async function applyFeatures(
     mergeManifestSection(packageJson, 'dependencies', manifest.dependencies, featureId);
     mergeManifestSection(packageJson, 'devDependencies', manifest.devDependencies, featureId);
     mergeManifestSection(packageJson, 'scripts', manifest.scripts, featureId);
-    await copyFeatureFiles(join(featureDir, 'files'), projectDir, featureId);
+    await copyFeatureFiles(join(featureDir, 'files'), projectDir, featureId, variables);
   }, Promise.resolve());
 
   await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
@@ -103,12 +103,18 @@ function mergeManifestSection(
     }
     section[name] = value;
   }
+  if (sectionName !== 'scripts') {
+    packageJson[sectionName] = Object.fromEntries(
+      Object.entries(section).toSorted(([left], [right]) => left.localeCompare(right)),
+    );
+  }
 }
 
 async function copyFeatureFiles(
   sourceDir: string,
   projectDir: string,
   featureId: FeatureId,
+  variables: Readonly<Record<string, string>>,
 ): Promise<void> {
   const entries = await readdir(sourceDir, { withFileTypes: true }).catch((error: unknown) => {
     if (isErrorCode(error, 'ENOENT')) return [];
@@ -120,10 +126,13 @@ async function copyFeatureFiles(
     .reduce(async (previous, entry) => {
       await previous;
       const source = join(sourceDir, entry.name);
-      const destination = join(projectDir, entry.name);
+      const destinationName = entry.name.endsWith('.template')
+        ? entry.name.slice(0, -'.template'.length)
+        : entry.name;
+      const destination = join(projectDir, destinationName);
       if (entry.isDirectory()) {
         await mkdir(destination, { recursive: true });
-        await copyFeatureFiles(source, destination, featureId);
+        await copyFeatureFiles(source, destination, featureId, variables);
         return;
       }
       if (!entry.isFile()) {
@@ -132,7 +141,8 @@ async function copyFeatureFiles(
 
       await mkdir(dirname(destination), { recursive: true });
       try {
-        await copyFile(source, destination, constants.COPYFILE_EXCL);
+        const template = await readFile(source, 'utf8');
+        await writeFile(destination, renderTemplate(template, variables), { flag: 'wx' });
       } catch (error) {
         if (isErrorCode(error, 'EEXIST')) {
           throw new Error(
@@ -143,6 +153,13 @@ async function copyFeatureFiles(
         throw error;
       }
     }, Promise.resolve());
+}
+
+function renderTemplate(template: string, variables: Readonly<Record<string, string>>): string {
+  return Object.entries(variables).reduce(
+    (rendered, [name, value]) => rendered.replaceAll(`{{${name}}}`, value),
+    template,
+  );
 }
 
 function parseRecord(source: string, label: string): Record<string, unknown> {

@@ -252,9 +252,36 @@ describe('scaffoldProject', () => {
         vitest: '^4.1.11',
       },
       scripts: {
-        'capability:package': 'bun run build && publint && attw --pack .',
+        'capability:package': 'bun run --cwd packages/library check:package',
       },
     });
+    const libraryManifest: unknown = JSON.parse(
+      await readFile(join(result.projectDir, 'packages', 'library', 'package.json'), 'utf8'),
+    );
+    expect(libraryManifest).toMatchObject({
+      name: 'my-project-library',
+      scripts: { 'check:package': 'bun run build && publint && bun ./scripts/verify-package.ts' },
+    });
+    expect(
+      await readFile(join(result.projectDir, 'packages', 'library', 'src', 'index.ts'), 'utf8'),
+    ).toContain('my-project-library');
+  });
+
+  test('generates the CLI profile as a feature preset', async () => {
+    const cwd = await temporaryDirectory();
+    const result = await scaffoldProject(options(cwd, { profile: 'cli' }));
+    const manifest: unknown = JSON.parse(
+      await readFile(join(result.projectDir, 'package.json'), 'utf8'),
+    );
+
+    expect(manifest).toMatchObject({
+      devDependencies: {
+        'case-police': '^2.2.1',
+        cspell: '^10.1.1',
+        vitest: '^4.1.11',
+      },
+    });
+    await expectRejection(readFile(join(result.projectDir, 'playwright.config.ts')));
   });
 
   test('omits GitHub Actions when CI is disabled', async () => {

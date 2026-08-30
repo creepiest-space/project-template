@@ -5,6 +5,6 @@
     "publint": "^0.3.23"
   },
   "scripts": {
-    "capability:package": "bun run build && publint && attw --pack ."
+    "capability:package": "bun run --cwd packages/library check:package"
   }
 }

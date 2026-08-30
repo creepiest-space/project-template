@@ -37,7 +37,7 @@
     "check": "bun run quality:fast",
     "check:full": "bun run quality",
     "commit": "bunx --bun czg --config=./cz.config.mts",
-    "prepare": "lefthook install"
+    "prepare": "bun ./scripts/install-hooks.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",

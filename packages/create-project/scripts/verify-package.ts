@@ -21,6 +21,7 @@ const requiredFiles = [
   'template/base/oxlint.config.mts.template',
   'template/base/package.json',
   'template/base/packages/.gitkeep',
+  'template/base/scripts/install-hooks.ts',
   'template/features/case-police/feature.json',
   'template/features/cspell/feature.json',
   'template/features/dependency-cruiser/feature.json',

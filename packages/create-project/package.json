@@ -41,6 +41,7 @@
     "test": "bun run test:unit && bun run test:integration",
     "test:unit": "bun test test/unit",
     "test:integration": "bun test test/e2e",
+    "test:smoke": "bun test test/smoke",
     "typecheck": "bunx tsc --noEmit",
     "verify:package": "bun ./scripts/verify-package.ts",
     "verify:tarball": "bun ./scripts/verify-tarball.ts",
