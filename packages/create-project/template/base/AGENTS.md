@@ -28,14 +28,21 @@ Keep the root generic. Product-specific code belongs in `apps/*` or `packages/*`
 - `bun install` — install dependencies.
 - `bun run dev` — run workspace development tasks.
 - `bun run build` — build all workspaces.
-- `bun run test` — run tests.
+- `bun run test:unit` — run unit tests.
+- `bun run test:integration` — run integration tests.
+- `bun run test:e2e` — run end-to-end tests when the profile supports them.
+- `bun run test` — compatibility alias for unit and integration tests.
 - `bun run typecheck` — run TypeScript checks.
 - `bun run lint` — run Oxlint.
 - `bun run lint:types` — run type-aware Oxlint.
 - `bun run format` — format source files.
-- `bun run deadcode` — run Knip.
-- `bun run check` — fast local quality gate.
-- `bun run check:full` — complete local quality gate.
+- `bun run check:deadcode` — run Knip.
+- `bun run check:case` — validate naming and path casing.
+- `bun run check:spelling` — run CSpell.
+- `bun run check:architecture` — validate dependency boundaries.
+- `bun run quality:fast` — fast local quality gate.
+- `bun run quality` — complete quality gate.
+- `bun run check` and `bun run check:full` — compatibility aliases.
 - `bun run commit` — create a Conventional Commit interactively.
 
 ## Architecture rules
@@ -68,22 +75,38 @@ Keep the root generic. Product-specific code belongs in `apps/*` or `packages/*`
 - Preserve ESM semantics.
 - Do not disable compiler checks to work around local errors.
 
-## Quality gate
+## Quality contract
 
-Before proposing or committing a non-trivial change, run:
+Every profile exposes the same top-level quality API. Optional capabilities are connected through
+profile and feature composition; an inapplicable gate must be disabled there instead of bypassed
+locally.
+
+- `quality:static` — formatting, JS/TS lint, optional style lint, and typechecking.
+- `quality:hygiene` — casing and spelling.
+- `quality:codebase` — dead code, architecture, optional package and security checks.
+- `quality:test` — unit and integration tests.
+- `quality:fast` — static checks, dead code, and unit tests.
+- `quality` — every applicable gate, build, and E2E.
+
+Before finishing a change, run:
 
 ```sh
-bun run check
+bun run format
+bun run quality:fast
 ```
 
-Before release or substantial refactoring, run:
+Before declaring implementation complete, run:
 
 ```sh
-bun run check:full
+bun run quality
 ```
 
 Run the smallest relevant checks while iterating. If a required check cannot run, report the exact
 command and blocker instead of claiming verification.
+
+Do not disable rules without justification, add Knip ignores instead of removing dead code, use
+`--no-verify` as a normal workflow, lower coverage thresholds to make CI pass, or add unused
+dependencies.
 
 ## Git
 

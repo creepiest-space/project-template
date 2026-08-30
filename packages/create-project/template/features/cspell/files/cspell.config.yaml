@@ -25,5 +25,7 @@ words:
   - npmjs
   - oxc
   - pcss
+  - publint
   - tsgolint
+  - vitest
   - worktree

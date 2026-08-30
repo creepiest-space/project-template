@@ -1,135 +1,126 @@
 # project-template
 
-Reusable engineering baseline for Creepiest Space TypeScript projects.
+Framework-neutral Bun + TypeScript monorepo baseline and composable project generator.
 
-## Stack
-
-- Bun
-- TypeScript
-- Turborepo
-- Oxlint
-- Oxfmt
-- Knip
-- Lefthook
-- Commitlint + czg
-- GitHub Actions
-
-## Repository layout
+## Composition model
 
 ```text
-.
-├── apps/                 # executable/deployable applications
-├── packages/             # reusable libraries
-├── .github/workflows/    # CI policies
-├── AGENTS.md              # AI/development contract
-├── package.json
-├── turbo.json
-├── tsconfig.base.json
-├── oxlint.config.mts
-├── oxfmt.config.mts
-├── knip.config.mts
-├── commitlint.config.mts
-├── cz.config.mts
-└── lefthook.yml
+base
+  ↓
+profile
+  ↓
+features
+  ↓
+framework
+  ↓
+generated project
 ```
 
-The template intentionally contains no application implementation. Add project profiles such as CLI, API, Web or Fullstack on top of this baseline.
+`base` owns the shared engineering contract. A profile selects a project shape, features add
+independent capabilities, and framework integration is a separate dimension. The initial framework
+catalog contains `none`, leaving a stable extension point for React, Hono, and other integrations.
 
-## Create a base project
+## Profiles
 
-The bundled generator currently provides the framework-neutral `base` template:
+| Profile     | Default capabilities                                 |
+| ----------- | ---------------------------------------------------- |
+| `base`      | Minimal framework-neutral monorepo                   |
+| `cli`       | Vitest, CSpell, case-police                          |
+| `api`       | CLI capabilities plus dependency-cruiser             |
+| `web`       | Vitest, Playwright, Stylelint, hygiene, architecture |
+| `library`   | Vitest, hygiene, architecture, npm package quality   |
+| `fullstack` | Web testing and quality capabilities                 |
+
+Profiles are presets, not template copies. The generator always starts from
+`packages/create-project/template/base` and composes manifests and files from
+`template/features/*` with conflict detection and deterministic ordering.
+
+Available features are `vitest`, `playwright`, `stylelint`, `cspell`, `case-police`,
+`dependency-cruiser`, `package-quality`, and `security`. The security capability currently adds a
+Renovate configuration and dependency audit without making heavy security tools mandatory.
+
+## Generate a project
 
 ```sh
-bun run packages/create-project/src/cli.ts my-project
+bunx @creepiest-space/create-project my-cli --profile=cli
+bunx @creepiest-space/create-project my-lib --profile=library
+bunx @creepiest-space/create-project my-web \
+  --profile=web \
+  --testing=unit,integration,e2e
 ```
 
-For a deterministic, non-interactive run:
+Fully explicit automation:
 
 ```sh
-bun run packages/create-project/src/cli.ts my-project \
-  --template=base \
-  --no-install \
-  --no-git
+bunx @creepiest-space/create-project my-project \
+  --profile=web \
+  --framework=none \
+  --testing=unit,integration,e2e \
+  --quality=full \
+  --ci=github \
+  --no-install
 ```
 
-The published package is intended to be invoked as:
+Use `--features=security` for extra capabilities and `--ci=none` to omit workflows. Existing
+options remain supported: `--template=base`, `--no-install`, `--no-git`, and `--force`.
 
-```sh
-bunx @creepiest-space/create-project@0.1.0 my-project
+Without selection flags in a terminal, the CLI prompts for the profile, framework, testing,
+quality, Git, and CI choices. Supplying a directory and explicit flags is deterministic and
+non-interactive.
+
+## Quality contract
+
+Every generated project exposes:
+
+```text
+quality:static   format, JS/TS lint, optional style lint, typecheck
+quality:hygiene  casing and spelling
+quality:codebase dead code, architecture, optional package/security checks
+quality:test     unit and integration tests
+quality:fast     static checks, dead code, unit tests
+quality          all applicable checks, build, E2E
 ```
 
-Existing target directories are preserved unless `--force` is explicitly provided.
-
-Build an npm tarball in `artifacts/` or inspect it without writing an artifact:
+Compatibility aliases remain available:
 
 ```sh
-bun run pack:create-project
+bun run check       # quality:fast
+bun run check:full  # quality
+bun run deadcode    # check:deadcode
+```
+
+Vitest provides unit and integration testing. Its optional V8 coverage defaults to 80% for lines,
+functions, and statements and 75% for branches. Set individual `COVERAGE_*` variables to customize
+them or `COVERAGE_THRESHOLDS=off` to disable thresholds. Playwright is added only when E2E is
+selected.
+
+Lefthook formats and lints staged files only, validates Conventional Commits, and runs
+`quality:fast` before push. GitHub Actions groups work into static, test, build, and profile-aware
+E2E/smoke jobs.
+
+## Package and release quality
+
+The `library` profile creates `packages/library` and checks its built package with Publint, Are the
+Types Wrong, and a Bun tarball smoke test.
+
+The generator package itself is blocking on the same checks:
+
+```sh
+bun run check:package
 bun run pack:create-project:dry-run
 ```
 
-See `packages/create-project/README.md` for the npmjs dry-run and publication commands.
+Release Please manages versions, changelogs, tags, and GitHub Releases for
+`@creepiest-space/create-project`. npm publication remains manual; the release workflow does not
+require or consume an npm token.
 
-## Start a project
+## Development
 
 ```sh
 bun install
+bun run quality:fast
+bun run quality
 ```
 
-Create an application or package under the corresponding workspace directory.
-
-Example package `packages/core/package.json`:
-
-```json
-{
-  "name": "@scope/core",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist",
-    "test": "bun test",
-    "typecheck": "bunx tsc --noEmit"
-  }
-}
-```
-
-Example workspace `tsconfig.json`:
-
-```json
-{
-  "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*.ts", "test/**/*.ts"]
-}
-```
-
-## Quality checks
-
-Fast gate:
-
-```sh
-bun run check
-```
-
-Full gate:
-
-```sh
-bun run check:full
-```
-
-## Commits
-
-Interactive Conventional Commit:
-
-```sh
-bun run commit
-```
-
-Lefthook validates formatting/lint before commit, commit message syntax, and the fast quality gate before push.
-
-## Template principles
-
-- Root stays framework-neutral.
-- `apps/*` contains executable products.
-- `packages/*` contains reusable code.
-- Framework-specific configuration belongs to a profile or workspace, not to the base template.
-- Release and deployment workflows are intentionally not part of the baseline because they depend on project type.
+Applications belong in `apps/*`; reusable libraries belong in `packages/*`. See `AGENTS.md` for
+the complete architecture and collaboration contract.
