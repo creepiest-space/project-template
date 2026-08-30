@@ -86,6 +86,14 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['app', '--template=web'])).toThrow(CliError);
     expect(() => parseArgs(['app', '--mystery'])).toThrow('Unknown option');
   });
+
+  test('preserves the legacy short options', () => {
+    expect(parseArgs(['app', '-t', 'base', '-f'], '/workspace')).toMatchObject({
+      dir: 'app',
+      force: true,
+      template: 'base',
+    });
+  });
 });
 
 describe('slugifyPackageName', () => {
@@ -115,6 +123,31 @@ describe('scaffoldProject', () => {
       'maxWarnings',
     );
     expect(await readFile(join(result.projectDir, 'apps', '.gitkeep'), 'utf8')).toBe('\n');
+  });
+
+  test('preserves the base template quality and workspace contract', async () => {
+    const cwd = await temporaryDirectory();
+    const result = await scaffoldProject(options(cwd));
+    const manifest: unknown = JSON.parse(
+      await readFile(join(result.projectDir, 'package.json'), 'utf8'),
+    );
+
+    expect(manifest).toMatchObject({
+      packageManager: 'bun@1.3.14',
+      private: true,
+      scripts: {
+        build: 'turbo build',
+        check: 'bun run format:check && bun run lint && bun run typecheck',
+        'check:full':
+          'bun run check && bun run lint:types && bun run test && bun run deadcode && bun run build',
+        test: 'turbo test',
+      },
+      workspaces: ['apps/*', 'packages/*'],
+    });
+    expect(await readFile(join(result.projectDir, 'lefthook.yml'), 'utf8')).toContain(
+      'bun run check',
+    );
+    expect(await readFile(join(result.projectDir, 'turbo.json'), 'utf8')).toContain('"test"');
   });
 
   test('preserves an existing directory unless force is explicit', async () => {

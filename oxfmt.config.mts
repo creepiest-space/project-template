@@ -9,5 +9,5 @@ export default defineConfig({
   trailingComma: 'all',
   sortImports: true,
   sortPackageJson: true,
-  ignorePatterns: ['dist/**', 'coverage/**', '.turbo/**'],
+  ignorePatterns: ['dist/**', 'coverage/**', '.turbo/**', 'tmp/**', 'upgrade.md'],
 });
