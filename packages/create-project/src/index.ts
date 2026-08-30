@@ -6,6 +6,9 @@ import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 
 import packageJson from '../package.json';
+import { applyFeatures, type FeatureId } from './features';
+
+export { applyFeatures, FEATURE_IDS, isFeatureId, type FeatureId } from './features';
 
 const TEMPLATE = 'base';
 const TEMPLATE_DIR = fileURLToPath(new URL('../template/base', import.meta.url));
@@ -27,6 +30,8 @@ export type CliOptions = {
 
 export type ScaffoldOptions = Pick<CliOptions, 'cwd' | 'force' | 'git' | 'install'> & {
   dir: string;
+  features?: readonly FeatureId[];
+  featuresDir?: string;
   template: string;
   templateDir?: string;
 };
@@ -202,6 +207,7 @@ export async function scaffoldProject(options: ScaffoldOptions): Promise<Scaffol
     });
     const projectName = slugifyPackageName(projectDir);
     await customizeTemplate(stagedProject, projectName);
+    await applyFeatures(stagedProject, options.features ?? [], options.featuresDir);
 
     if (exists) {
       backupDir = join(parentDir, `.create-project-backup-${randomUUID()}`);

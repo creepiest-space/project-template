@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  applyFeatures,
   CliError,
   formatReproductionCommand,
   getNextSteps,
@@ -148,6 +149,57 @@ describe('scaffoldProject', () => {
     expect(lefthook).toContain('{staged_files}');
     expect(lefthook).toContain('bun run quality:fast');
     expect(await readFile(join(result.projectDir, 'turbo.json'), 'utf8')).toContain('"test"');
+  });
+
+  test('composes feature files, scripts, and dependencies', async () => {
+    const cwd = await temporaryDirectory();
+    const result = await scaffoldProject(
+      options(cwd, { features: ['dependency-cruiser', 'cspell', 'case-police', 'cspell'] }),
+    );
+    const manifest: unknown = JSON.parse(
+      await readFile(join(result.projectDir, 'package.json'), 'utf8'),
+    );
+
+    expect(manifest).toMatchObject({
+      devDependencies: {
+        'case-police': '^2.2.1',
+        cspell: '^10.1.1',
+        'dependency-cruiser': '^18.2.0',
+      },
+      scripts: {
+        'capability:architecture': 'depcruise apps packages --config dependency-cruiser.config.mjs',
+        'capability:case': 'case-police',
+        'capability:spelling': 'cspell .',
+      },
+    });
+    expect(await readFile(join(result.projectDir, 'cspell.config.yaml'), 'utf8')).toContain(
+      'Creepiest',
+    );
+    expect(
+      await readFile(join(result.projectDir, 'dependency-cruiser.config.mjs'), 'utf8'),
+    ).toContain('packages-must-not-depend-on-apps');
+  });
+
+  test('rejects conflicting feature manifest entries', async () => {
+    const cwd = await temporaryDirectory();
+    const projectDir = join(cwd, 'project');
+    const featuresDir = join(cwd, 'features');
+    await mkdir(join(featuresDir, 'cspell'), { recursive: true });
+    await mkdir(projectDir);
+    await writeFile(
+      join(projectDir, 'package.json'),
+      `${JSON.stringify({ scripts: { build: 'turbo build' } })}\n`,
+    );
+    await writeFile(
+      join(featuresDir, 'cspell', 'feature.json'),
+      `${JSON.stringify({ id: 'cspell', scripts: { build: 'other build' } })}\n`,
+    );
+
+    await expectRejection(
+      applyFeatures(projectDir, ['cspell'], featuresDir),
+      'conflicts with package.json scripts.build',
+    );
+    expect(await readFile(join(projectDir, 'package.json'), 'utf8')).toContain('turbo build');
   });
 
   test('preserves an existing directory unless force is explicit', async () => {
