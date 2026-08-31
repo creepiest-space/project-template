@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "description": "Reusable TypeScript library",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "type": "module",
-  "files": ["dist"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
