@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import {
   applyFeatures,
@@ -80,7 +80,7 @@ describe('parseArgs', () => {
         '/workspace',
       ),
     ).toMatchObject({
-      cwd: '/workspace/projects',
+      cwd: resolve('/workspace', 'projects'),
       dir: 'app',
       force: true,
       git: false,
@@ -338,8 +338,8 @@ describe('scaffoldProject', () => {
 
 describe('handoff output', () => {
   test('prints a pinned reproduction command', () => {
-    expect(formatReproductionCommand(options('/workspace', { dir: 'my app' }))).toContain(
-      "bunx @creepiest-space/create-project@0.2.0 'my app' --template=base --no-git --no-install",
+    expect(formatReproductionCommand(options('/workspace', { dir: 'my app' }))).toMatch(
+      /^bunx @creepiest-space\/create-project@0\.2\.0 (?:'my app'|"my app") --template=base --no-git --no-install$/,
     );
   });
 
