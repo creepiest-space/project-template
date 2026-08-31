@@ -339,7 +339,7 @@ describe('scaffoldProject', () => {
 describe('handoff output', () => {
   test('prints a pinned reproduction command', () => {
     expect(formatReproductionCommand(options('/workspace', { dir: 'my app' }))).toContain(
-      "bunx @creepiest-space/create-project@0.1.0 'my app' --template=base --no-git --no-install",
+      "bunx @creepiest-space/create-project@0.2.0 'my app' --template=base --no-git --no-install",
     );
   });
 
