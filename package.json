@@ -38,12 +38,16 @@
     "check": "bun run quality:fast",
     "check:full": "bun run quality",
     "commit": "bunx --bun czg --config=./cz.config.mts",
+    "changeset": "changeset",
+    "release:version": "changeset version && bun install --lockfile-only && bun run format",
+    "release:publish": "bun run quality && changeset publish",
     "pack:create-project": "bun run --cwd packages/create-project pack:npm",
     "pack:create-project:dry-run": "bun run --cwd packages/create-project pack:npm:dry-run",
     "prepare": "lefthook install"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
     "@commitlint/types": "^21.2.0",

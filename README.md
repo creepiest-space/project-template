@@ -110,9 +110,38 @@ bun run check:package
 bun run pack:create-project:dry-run
 ```
 
-Release Please manages versions, changelogs, tags, and GitHub Releases for
-`@creepiest-space/create-project`. npm publication remains manual; the release workflow does not
-require or consume an npm token.
+[Changesets](https://github.com/changesets/changesets) manages versions and changelogs for public
+workspace packages, including `@creepiest-space/create-project`. For a package change, run
+`bun run changeset` and commit the generated file alongside the implementation. Choose the
+appropriate patch, minor, or major bump and write a user-facing summary.
+
+On pushes to `main`, `.github/workflows/release.yml` creates or updates a release PR. Merging
+that PR runs the full `bun run quality` gate and publishes unpublished versions to npm, then
+creates package tags and GitHub releases. The private root package is never published.
+The workflow can also be rerun manually to retry a failed publication; already published
+versions are skipped. Existing versions and changelog history are preserved during migration.
+If there are no pending changesets, the workflow also publishes any existing version that is
+not yet on npm, including on its first run.
+
+Before using the workflow:
+
+- Enable **Allow GitHub Actions to create and approve pull requests** in repository settings
+  under **Actions > General**.
+- In the npm package settings, add a **Trusted Publisher** for GitHub Actions: organization
+  `creepiest-space`, repository `project-template`, workflow filename `release.yml` (without
+  its directory). Leave the environment empty; this workflow does not use a GitHub environment.
+  Allow direct publishing with `npm publish`. Configure each public package separately and
+  update these values and `repository.url` when using a fork.
+- If branch protection requires CI on release PRs, note that PRs created with `GITHUB_TOKEN`
+  do not automatically trigger other workflows. Use a GitHub App token or a suitable personal
+  access token in the workflow's `GITHUB_TOKEN` environment variable when those checks are required.
+
+`bun run release:version` applies pending changesets and updates the Bun lockfile.
+`bun run release:publish` checks quality and publishes to npm through Changesets, which invokes
+the npm CLI. CI uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) with
+OIDC and `id-token: write`; no `NPM_TOKEN` or `NODE_AUTH_TOKEN` secret is needed. The workflow
+uses Node.js 24 and npm 11 (trusted publishing requires npm 11.5.1+ and Node.js 22.14.0+).
+Local publishing still requires npm authentication; GitHub OIDC is only available in CI.
 
 ## Development
 
